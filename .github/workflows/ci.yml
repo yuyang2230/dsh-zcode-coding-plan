@@ -28,9 +28,24 @@ jobs:
       - name: Run test suites
         run: npm test
 
+      # Syntax-check every library module and script. Done in Node (not a shell
+      # loop) so the same command works on the PowerShell and bash runners
+      # without shell-specific globbing.
       - name: Syntax-check library and scripts
         run: |
-          for f in lib/*.js scripts/*.mjs; do node --check "$f"; done
+          node -e "
+          const { readdirSync } = require('fs');
+          const files = [
+            ...readdirSync('lib').filter(f => f.endsWith('.js')).map(f => 'lib/' + f),
+            ...readdirSync('scripts').filter(f => f.endsWith('.mjs')).map(f => 'scripts/' + f),
+            ...readdirSync('test').filter(f => f.endsWith('.mjs')).map(f => 'test/' + f),
+          ];
+          const { execFileSync } = require('child_process');
+          for (const f of files) {
+            execFileSync(process.execPath, ['--check', f], { stdio: 'inherit' });
+          }
+          console.log('syntax OK:', files.length, 'files');
+          "
 
       - name: Import smoke test (library surface)
         run: node -e "import('./lib/index.js').then(m => { const need = ['name','inject','apply']; const miss = need.filter(k => !(k in m)); if (miss.length) { console.error('missing exports:', miss); process.exit(1); } console.log('exports OK:', need.join(', ')); })"
