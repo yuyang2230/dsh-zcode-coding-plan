@@ -1,12 +1,26 @@
 # dsh-zcode-coding-plan
 
-> **一句话定位**：让已经付费的 **GLM Coding Plan 套餐额度**在 DSH 会话里真正发挥作用——合规驱动官方 ZCode 客户端，
-> 把编码重活派给套餐通道，**不绕过、不破解任何限制**。
+[![CI](https://github.com/yuyang2230/dsh-zcode-coding-plan/actions/workflows/ci.yml/badge.svg)](https://github.com/yuyang2230/dsh-zcode-coding-plan/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%3E%3D18-5FA04E)](https://nodejs.org)
+[![ZCode](https://img.shields.io/badge/ZCode-3.x-8A2BE2)](https://zcode.z.ai/cn/docs)
 
-DeepSeek Harness 桌面端插件。通过 **ZCode 官方 CLI** 调用 GLM Coding Plan 模型，在 agent 里注册两个工具：
-`zcode_call`（派活，支持多轮）和 `zcode_quota`（查套餐余量）。
+**买了 GLM Coding Plan，却只在别的客户端里用？** 这个 DSH 桌面端插件让那份已付费的套餐额度，
+在 DeepSeek Harness 会话里真正发挥作用——把编码重活派给官方 ZCode 通道，享受 **1.5 倍（150%）**额度，
+外加原生 Agent 能力（文件 / Bash / MCP）与多轮会话。
 
 ![直连 API Key 与经 ZCode 官方 CLI 的对比](docs/assets/comparison.svg)
+
+> 合规驱动官方 ZCode 客户端，**不修改客户端、不伪造请求、不绕过任何限制**。
+
+**注册两个工具：**
+
+| 工具 | 作用 |
+| --- | --- |
+| `zcode_call` | 派一个真实 agent 任务给套餐通道，支持 `--resume` 多轮续接 |
+| `zcode_quota` | 查套餐余量；配合内置闸门做到「余量够才自动派活」 |
+
+**先看对比，再决定要不要装** ↓
 
 ---
 
@@ -39,6 +53,14 @@ DeepSeek Harness 桌面端插件。通过 **ZCode 官方 CLI** 调用 GLM Coding
 - **你没有 Coding Plan 订阅** → 装了无效果，白折腾。直连 API Key 按量扣余额也完全能用。
 - 你只想要**一次性的短问答** → 起 ZCode 子进程要背约 66K tokens 的系统提示，比裸 API 调用重得多。
 - 你**不接受**在机器上多装一个 Electron 客户端 → 本插件依赖它。
+
+### 快速判断：装之前问自己三句
+
+1. 我**已经订阅**了 GLM Coding Plan 吗？（没有 → 跳过本插件）
+2. 我平时主要在 **DSH** 里干活，而不是 ZCode 客户端里？（是 → 插件有用）
+3. 我有重活（多文件重构 / 跑测试 / 批量修改）想外包吗？（有 → 直接收益）
+
+三个都是「是」再往下看安装。
 
 ---
 
