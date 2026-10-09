@@ -1,0 +1,15 @@
+node_modules/
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# never commit a real override: it embeds the user's coding-plan API key
+zcode-provider-override.json
+**/zcode-provider-override.json
+*.override.json
+
+# local scratch
+tmp/
+.cache/
+*.local.json

@@ -1,0 +1,31 @@
+name: PR
+description: 提交 Pull Request
+labels: [enhancement]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 改了什么
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: 为什么
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 提交前检查
+      options:
+        - label: npm test 全绿（114 断言）
+          required: true
+        - label: 新增行为在 test/ 里有对应断言，且**测试没有发起真实调用**
+          required: true
+        - label: 涉及 ZCode 行为的改动已同步更新 docs/how-it-works.md
+        - label: 没有硬编码任何机器路径（一切走 lib/paths.js）
+          required: true
+        - label: 没有提交真实 API Key / token / 凭证
+          required: true
+        - label: 若改了 provider 配置结构，已核对 CONTRIBUTING.md 的两个硬性要求

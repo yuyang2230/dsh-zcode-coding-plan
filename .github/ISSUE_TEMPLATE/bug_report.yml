@@ -1,0 +1,39 @@
+name: Bug 反馈
+description: 插件不工作 / 报错 / 行为异常
+labels: [bug]
+body:
+  - type: textarea
+    id: symptom
+    attributes:
+      label: 现象
+      placeholder: 贴出错误信息原文（例如 Model creation failed / quota_insufficient）
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 安装/注册步骤
+        2. 调用的 prompt 与 mode
+        3. 观察到的结果
+    validations:
+      required: true
+  - type: textarea
+    id: setupcheck
+    attributes:
+      label: 环境自检输出（npm run check）
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: 版本
+      placeholder: ZCode x.y.z · DSH x.y.z · 插件 0.2.0 · OS
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: 其他信息

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520" role="img" aria-label="直连 API Key 与经 ZCode 官方 CLI 的对比">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="hotBorder" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="900" height="520" fill="url(#bg)"/>
+
+  <!-- title -->
+  <text x="450" y="52" text-anchor="middle" fill="#f1f5f9"
+        font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+        font-size="30" font-weight="700">同一份套餐额度，两种花法</text>
+  <text x="450" y="82" text-anchor="middle" fill="#94a3b8"
+        font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+        font-size="15">GLM Coding Plan · ZCode 渠道 1.5 倍</text>
+
+  <!-- LEFT card -->
+  <rect x="40" y="112" width="380" height="300" rx="14" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+  <rect x="64" y="132" width="78" height="24" rx="12" fill="#334155"/>
+  <text x="103" y="149" text-anchor="middle" fill="#cbd5e1"
+        font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+        font-size="13">按量付费</text>
+  <text x="230" y="152" text-anchor="middle" fill="#e2e8f0"
+        font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+        font-size="19" font-weight="600">直连 API Key</text>
+
+  <g font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="15">
+    <text x="68" y="196" fill="#94a3b8">计费口径</text><text x="190" y="196" fill="#e2e8f0">账户余额</text>
+    <text x="68" y="232" fill="#94a3b8">渠道倍率</text><text x="190" y="232" fill="#e2e8f0">不适用</text>
+    <text x="68" y="268" fill="#94a3b8">Agent 能力</text><text x="190" y="268" fill="#e2e8f0">纯 LLM 调用</text>
+    <text x="68" y="304" fill="#94a3b8">多轮续接</text><text x="190" y="304" fill="#e2e8f0">需自行实现</text>
+    <text x="68" y="340" fill="#94a3b8">上下文缓存</text><text x="190" y="340" fill="#e2e8f0">无</text>
+    <line x1="64" y1="222" x2="396" y2="222" stroke="#334155" stroke-width="1"/>
+    <line x1="64" y1="258" x2="396" y2="258" stroke="#334155" stroke-width="1"/>
+    <line x1="64" y1="294" x2="396" y2="294" stroke="#334155" stroke-width="1"/>
+    <line x1="64" y1="330" x2="396" y2="330" stroke="#334155" stroke-width="1"/>
+  </g>
+
+  <!-- RIGHT card -->
+  <rect x="480" y="112" width="380" height="300" rx="14" fill="#172a2e" stroke="url(#hotBorder)" stroke-width="2.5"/>
+  <rect x="504" y="132" width="78" height="24" rx="12" fill="#065f46"/>
+  <text x="543" y="149" text-anchor="middle" fill="#a7f3d0"
+        font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+        font-size="13">套餐额度</text>
+  <text x="700" y="152" text-anchor="middle" fill="#ecfdf5"
+        font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+        font-size="19" font-weight="600">经 ZCode 官方 CLI</text>
+
+  <g font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif" font-size="15">
+    <text x="528" y="196" fill="#6ee7b7">计费口径</text><text x="650" y="196" fill="#f0fdfa">套餐积分</text>
+    <text x="528" y="232" fill="#6ee7b7">渠道倍率</text>
+    <text x="650" y="232" fill="#34d399" font-weight="700">1.5 倍（150%）</text>
+    <text x="528" y="268" fill="#6ee7b7">Agent 能力</text><text x="650" y="268" fill="#f0fdfa">原生文件 / Bash / MCP</text>
+    <text x="528" y="304" fill="#6ee7b7">多轮续接</text><text x="650" y="304" fill="#f0fdfa">原生 --resume</text>
+    <text x="528" y="340" fill="#6ee7b7">上下文缓存</text><text x="650" y="340" fill="#f0fdfa">支持</text>
+    <line x1="504" y1="222" x2="836" y2="222" stroke="#1e4d44" stroke-width="1"/>
+    <line x1="504" y1="258" x2="836" y2="258" stroke="#1e4d44" stroke-width="1"/>
+    <line x1="504" y1="294" x2="836" y2="294" stroke="#1e4d44" stroke-width="1"/>
+    <line x1="504" y1="330" x2="836" y2="330" stroke="#1e4d44" stroke-width="1"/>
+  </g>
+
+  <!-- highlight bar on right card -->
+  <rect x="480" y="424" width="380" height="38" rx="10" fill="#065f46" stroke="#34d399" stroke-width="1"/>
+  <text x="670" y="449" text-anchor="middle" fill="#d1fae5"
+        font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+        font-size="16" font-weight="600">省下的都是已付费的额度</text>
+
+  <!-- footer -->
+  <text x="450" y="498" text-anchor="middle" fill="#64748b"
+        font-family="PingFang SC, Microsoft YaHei, Noto Sans CJK SC, sans-serif"
+        font-size="13">合规驱动官方客户端，不绕过、不破解任何限制</text>
+</svg>

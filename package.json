@@ -1,0 +1,43 @@
+{
+  "name": "dsh-zcode-coding-plan",
+  "version": "0.2.0",
+  "description": "DeepSeek Harness desktop plugin that calls GLM Coding Plan models through the official ZCode CLI. Rides the ZCode channel (1.5x plan credits, context caching, native agent tools) via per-spawn provider-override env. Registers zcode_call (task dispatch, supports --resume multi-turn) and zcode_quota (plan headroom query).",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./paths": "./lib/paths.js",
+    "./quota": "./lib/quota.js"
+  },
+  "files": [
+    "lib/",
+    "scripts/",
+    "docs/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "check": "node scripts/setup-check.mjs",
+    "test": "node test/register.test.mjs && node test/gate.test.mjs && node test/negative-gate.test.mjs",
+    "test:smoke": "node scripts/e2e-smoke.mjs",
+    "install:helper": "node scripts/install.mjs",
+    "override": "node scripts/generate-override.mjs"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "cordis-plugin",
+    "zcode",
+    "glm",
+    "coding-plan",
+    "bigmodel"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/dsh-tools": "*"
+  }
+}
