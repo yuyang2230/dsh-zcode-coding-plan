@@ -265,8 +265,17 @@ console.log('\n[7] 路径探测')
   // De-pathing guarantee: the old build had these as DEFAULTS. A machine that
   // legitimately installed ZCode to D:\Program Files\ZCode may still resolve
   // there — what must not happen is resolving there WITHOUT it existing.
-  check('resolved exe actually exists on disk', existsSync(resolved.zcodeExe || ''))
-  check('resolved cjs actually exists on disk', existsSync(resolved.zcodeCjs || ''))
+  // When detection finds nothing, the correct behaviour is to report no path
+  // at all (so the plugin shows an actionable error) — not to invent one.
+  if (resolved.ok) {
+    check('resolved exe actually exists on disk', existsSync(resolved.zcodeExe), String(resolved.zcodeExe))
+    check('resolved cjs actually exists on disk', existsSync(resolved.zcodeCjs), String(resolved.zcodeCjs))
+  } else {
+    check('probe failure invents no exe path', !resolved.zcodeExe, String(resolved.zcodeExe))
+    check('probe failure invents no cjs path', !resolved.zcodeCjs, String(resolved.zcodeCjs))
+    check('probe failure carries an actionable error', typeof resolved.error === 'string' && resolved.error.length > 0,
+      String(resolved.error))
+  }
   check('exe is never invented when probe fails',
     resolveZCodePaths({ zcodeRoot: '/definitely/not/a/zcode/install' }, { env: { PATH: '' } }).ok === false)
 
