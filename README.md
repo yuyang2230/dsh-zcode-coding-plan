@@ -1,5 +1,7 @@
 # dsh-zcode-coding-plan
 
+**中文** · [English](README.en.md) · [Release notes](https://github.com/yuyang2230/dsh-zcode-coding-plan/releases)
+
 [![CI](https://github.com/yuyang2230/dsh-zcode-coding-plan/actions/workflows/ci.yml/badge.svg)](https://github.com/yuyang2230/dsh-zcode-coding-plan/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-5FA04E)](https://nodejs.org)
