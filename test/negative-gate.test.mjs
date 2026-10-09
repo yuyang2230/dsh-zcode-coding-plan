@@ -11,10 +11,10 @@
 // The ZCode spawn stub THROWS if called, so any accidental spawn fails loudly.
 //
 //   node test/negative-gate.test.mjs
-import { mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { EventEmitter } from 'node:events'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { zcodeCallTool, resolveConfig } from '../lib/index.js'
 
 let pass = 0
@@ -29,6 +29,30 @@ console.log('dsh-zcode-coding-plan · negative quota gate test\n')
 
 const tmp = mkdtempSync(join(tmpdir(), 'dsh-zcode-gate-'))
 
+/**
+ * Throwaway fake "ZCode install" so the pre-spawn existence checks pass on any
+ * host (including CI runners with no ZCode). Keeps the suite hermetic: the
+ * gate's real logic is exercised, but nothing depends on the machine's setup.
+ */
+const FAKE_EXE = join(tmp, 'ZCode.exe')
+const FAKE_CJS = join(tmp, 'resources', 'glm', 'zcode.cjs')
+const FAKE_BUILTIN = join(tmp, 'resources', 'config', 'provider', 'zcode-builtin.json')
+const FAKE_OVERRIDE = join(tmp, 'zcode-provider-override.json')
+mkdirSync(dirname(FAKE_CJS), { recursive: true })
+mkdirSync(dirname(FAKE_BUILTIN), { recursive: true })
+writeFileSync(FAKE_EXE, 'fake', 'utf8')
+writeFileSync(FAKE_CJS, '// fake', 'utf8')
+writeFileSync(FAKE_BUILTIN, '{}', 'utf8')
+writeFileSync(FAKE_OVERRIDE, '{}', 'utf8')
+
+/** Base config pinning the fake install; callers override the quota bits. */
+const fakeInstall = () => ({
+  zcodeExe: FAKE_EXE,
+  zcodeCjs: FAKE_CJS,
+  builtinProviderConfig: FAKE_BUILTIN,
+  providerOverride: FAKE_OVERRIDE,
+})
+
 /** A stand-in estimator: prints the contract JSON no matter what args it gets. */
 function makeStub(payload) {
   const file = join(tmp, `quota-stub-${Math.random().toString(36).slice(2)}.mjs`)
@@ -37,7 +61,7 @@ function makeStub(payload) {
 }
 
 const toolWithConfig = (config, spawnImpl) => {
-  const { cfg } = resolveConfig(config)
+  const { cfg } = resolveConfig({ ...fakeInstall(), ...config })
   return zcodeCallTool(cfg, { spawn: spawnImpl })
 }
 
