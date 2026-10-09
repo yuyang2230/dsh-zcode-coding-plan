@@ -75,9 +75,20 @@ stderr 尾部:
 Error: Model creation failed (traceId: ……)
 ```
 
-这是**最常见**的坑，且几乎总是同一个原因。
+这是**最常见**的坑。personal 覆盖是**严格 schema**，少键、多键都会死，所以根因几乎总在覆盖配置的**形状**上（实测环境：Windows + ZCode 3.14.5，schema revision 30，真实 CLI 二分 A/B）。
 
-### 根因
+### 第一步：先跑自检，看 schema 告警
+
+```bash
+node scripts/setup-check.mjs
+```
+
+`[1] ZCode 客户端` 一节会输出 **schema 兼容性**结果（`lib/schema.js` 只读 ZCode 内置 provider 配置文件做判定，不做任何真实调用）：
+
+- `✓ schema 兼容性：personal 覆盖键仍被内置目录识别` → 形状层面没问题，看根因 A；
+- `✗ schema 兼容性：内置目录里已看不到 personal provider 键` → 这个 ZCode 版本的 personal 结构变了，直接跳到「如果还是不行」。
+
+### 根因 A：缺 `manualProviderModelRules` 键
 
 ZCode 3.14.5 在解析模型时要求 `modelConfigRules` 里存在 `manualProviderModelRules` 键。
 **缺这个键（哪怕其余部分完全正确）就会报 `Model creation failed`。**
@@ -89,9 +100,19 @@ A/B 实测：
 | 有 `providerModelRules`，无 `manualProviderModelRules` | ✗ Model creation failed |
 | 有 `providerModelRules` + `"manualProviderModelRules": []` | ✓ 正常 |
 
+### 根因 B：把 ZCode 内置目录的键复制进了 personal 覆盖（同样致命）
+
+**不要**把 `zcode-builtin.json` 里声明的 catalog 键复制进你的 personal 覆盖。实测（二分法，真实 CLI）：`modelRules`、`modelApiRules`、`providerSiteRules`、`templateModelRules`、`builtinProviderModelRules`、`providerConfigRules.templateRules`——**每加一个都会 `Model creation failed`**。personal 覆盖只接受：
+
+- `providerOrder`
+- `providerConfigRules.providerRules`
+- `modelConfigRules.providerModelRules` + `modelConfigRules.manualProviderModelRules`
+
+内置配置只用来**读**、用来对照——里面的键一个都不要抄进 personal 覆盖。
+
 ### 解决
 
-**优先：重新生成覆盖配置**（`lib/override.js` 已包含该键）
+**优先：重新生成覆盖配置**（`lib/override.js` 已包含该键，且不含任何 catalog 键）
 
 ```bash
 node scripts/generate-override.mjs --force
@@ -107,14 +128,16 @@ node scripts/generate-override.mjs --force
 
 ### 如果还是不行
 
-**ZCode 大版本升级改了 schema** —— 这是已知限制。对照 ZCode 自带的内置配置看新结构：
+**ZCode 大版本升级改了 schema** —— 先看 `setup-check` 的 schema 告警确认；再对照 ZCode 自带的内置配置看新结构（**只读参考，键不要复制**）：
 
 ```bash
 # Windows 路径按你的安装位置调整
 python -c "import json;d=json.load(open(r'D:\Program Files\ZCode\resources\config\provider\zcode-builtin.json',encoding='utf-8'));print(list(d['config'].keys()));print(json.dumps(d['config']['providerConfigRules']['providerRules'][0],ensure_ascii=False,indent=1)[:800])"
 ```
 
-然后改 `lib/override.js` 里的 `buildOverrideConfig()`。
+确认 personal 键换了名字后，**先在真实 CLI 上实测验证**，再改 `lib/schema.js` 顶部的 `PERSONAL_*` 常量——`lib/override.js` 的生成逻辑不用动。改完用 `node scripts/e2e-adaptive.mjs` 跑一次真实调用确认。
+
+> 实测方式与版本边界：本节结论在 **Windows + ZCode 3.14.5（schema revision 30）** 上测得；机制细节见 [how-it-works.md「provider schema 自适应与严格性」](how-it-works.md#三provider-schema-自适应与严格性)。
 
 ---
 

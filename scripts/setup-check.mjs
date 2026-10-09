@@ -12,6 +12,7 @@
 import { existsSync, statSync } from 'node:fs'
 import { credentialsPath, defaultOverridePath, resolveZCodePaths, zcodeUsageDb } from '../lib/paths.js'
 import { loadCodingPlanKey, overrideLooksValid, CODES_KEY_REF } from '../lib/override.js'
+import { introspectSchema } from '../lib/schema.js'
 import { QUOTA_DEFAULTS } from '../lib/quota.js'
 
 const env = process.env
@@ -52,8 +53,23 @@ function main() {
     console.log(ok(`安装根目录 ${paths.root}（来源: ${paths.source}）`))
     console.log(ok(`CLI 入口 ${paths.zcodeCjs}`))
     console.log(ok(`可执行 ${paths.zcodeExe}`))
-    if (paths.builtinProviderConfig) console.log(ok(`内置 provider 配置 ${paths.builtinProviderConfig}`))
-    else console.log(warn('内置 provider 配置未找到；ZCode 将回退默认 provider 配置（可能影响 providerOrder）'))
+    if (paths.builtinProviderConfig) {
+      console.log(ok(`内置 provider 配置 ${paths.builtinProviderConfig}`))
+      // schema 兼容性判定（lib/schema.js）：personal 覆盖是严格 schema，catalog
+      // 键致命（实测见 docs/how-it-works.md「provider schema 自适应与严格性」）。
+      // 这里只读 ZCode 内置配置文件做判定，不做任何真实调用。
+      const shape = introspectSchema(paths.builtinProviderConfig)
+      const rev = shape.revision !== undefined ? `（schema revision ${shape.revision}）` : ''
+      if (shape.declaresPersonalKeys === false) {
+        console.log(bad(`schema 兼容性：内置目录里已看不到 personal provider 键${rev}，personal 覆盖结构可能已变更`))
+        console.log(warn('若派活报 Model creation failed，请对照该内置配置实测后调整 lib/schema.js 的 PERSONAL_* 常量（见 docs/troubleshooting.md 第 2 节）'))
+        failures.push('schema 兼容性')
+      } else {
+        console.log(ok(`schema 兼容性：personal 覆盖键仍被内置目录识别${rev}`))
+      }
+    } else {
+      console.log(warn('内置 provider 配置未找到；ZCode 将回退默认 provider 配置（可能影响 providerOrder），插件将使用静态 provider 形状'))
+    }
   } else {
     console.log(bad(paths.error))
     console.log(warn(paths.hint))

@@ -293,7 +293,7 @@ console.log('\n[7] 路径探测')
 // ── 8. override module ──
 console.log('\n[8] 覆盖配置与凭据')
 {
-  const doc = buildOverrideConfig({ apiKey: 'test-key' })
+  const { doc, notes } = buildOverrideConfig({ apiKey: 'test-key' })
   check('providerOrder[0] is the coding plan provider',
     doc.config.providerOrder[0] === 'dsh-glm-coding-plan', JSON.stringify(doc.config.providerOrder))
   const rule = doc.config.providerConfigRules.providerRules[0]
@@ -306,6 +306,7 @@ console.log('\n[8] 覆盖配置与凭据')
     doc.config.modelConfigRules.providerModelRules.length === rule.config.modelOrder.length)
   check('no defaultModelSelection (known ineffective)',
     doc.config.defaultModelSelection === undefined)
+  check('builder reports notes', Array.isArray(notes) && notes.length > 0)
 
   const key = loadCodingPlanKey()
   if (key) console.log(`    读到本机 ${'BIGMODEL_CODING_PLAN_API_KEY'} (len ${key.length})`)

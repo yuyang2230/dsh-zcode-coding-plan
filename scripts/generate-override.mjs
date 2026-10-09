@@ -8,7 +8,7 @@
 //   node scripts/generate-override.mjs [--out <path>] [--force] [--print]
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
-import { credentialsPath, defaultOverridePath } from '../lib/paths.js'
+import { credentialsPath, defaultOverridePath, resolveZCodePaths } from '../lib/paths.js'
 import { buildOverrideConfig, loadCodingPlanKey, overrideLooksValid, CODES_KEY_REF } from '../lib/override.js'
 
 function parseArgs() {
@@ -18,6 +18,8 @@ function parseArgs() {
     const a = argv[i]
     if (a === '--out') out.out = argv[++i]
     else if (a.startsWith('--out=')) out.out = a.slice('--out='.length)
+    else if (a === '--builtin') out.builtin = argv[++i]
+    else if (a.startsWith('--builtin=')) out.builtin = a.slice('--builtin='.length)
     else if (a === '--force') out.force = true
     else if (a === '--print') out.print = true
     else if (a === '--help' || a === '-h') out.help = true
@@ -27,7 +29,9 @@ function parseArgs() {
 
 const args = parseArgs()
 if (args.help) {
-  console.log('usage: node scripts/generate-override.mjs [--out <path>] [--force] [--print]')
+  console.log('usage: node scripts/generate-override.mjs [--out <path>] [--builtin <zcode-builtin.json>] [--force] [--print]')
+  console.log('  --builtin  ZCode 内置 provider 配置路径；给定时按该版本的 schema 自适应生成')
+  console.log('  不给则自动探测；探测不到则回退到静态形状')
   process.exit(0)
 }
 
@@ -49,7 +53,18 @@ if (overrideLooksValid(outPath) && !args.force) {
   process.exit(0)
 }
 
-const doc = buildOverrideConfig({ apiKey: key })
+// Schema-adaptive generation: when we can locate ZCode's own builtin provider
+// config, mirror its key set. Auto-detected unless --builtin says otherwise.
+let builtin = args.builtin
+if (!builtin) {
+  try {
+    const paths = resolveZCodePaths({}, { env })
+    if (paths && paths.ok) builtin = paths.builtinProviderConfig
+  } catch { /* detection is best-effort; static shape below */ }
+}
+
+const built = buildOverrideConfig({ apiKey: key, builtinProviderConfig: builtin })
+const doc = built.doc
 mkdirSync(dirname(outPath), { recursive: true })
 writeFileSync(outPath, JSON.stringify(doc, null, 2), { encoding: 'utf8' })
 
@@ -60,6 +75,7 @@ try {
 } catch { /* best effort */ }
 
 console.log(`✓ 已生成 provider 覆盖配置: ${outPath}`)
+for (const note of built.notes || []) console.log(`  · ${note}`)
 console.log(`  providerOrder[0] = ${doc.config.providerOrder[0]}`)
 console.log(`  baseUrl           = ${doc.config.providerConfigRules.providerRules[0].config.api.baseUrl}`)
 console.log(`  models            = ${doc.config.providerConfigRules.providerRules[0].config.modelOrder.join(', ')}`)

@@ -148,7 +148,33 @@ A/B 验证（`node test/…` 同款脚本，真实 CLI）：
 
 ---
 
-## 三、为什么不碰 ZCode 的全局配置
+## 三、provider schema 自适应与严格性
+
+> 本节结论全部来自 2026-10-09 的真实 CLI 实测（二分 A/B；端到端脚本 `scripts/e2e-adaptive.mjs`，手动跑，不在 `npm test` 里）。实测环境：**Windows + ZCode 3.14.5，schema revision 30**。三条事实均已实测核实并被 `test/schema.test.mjs` 的断言锁住。
+
+personal 覆盖的解析是**严格 schema**，实测确认：
+
+1. **路由**：ZCode 取 `providerOrder` 中第一个启用的条目作为 provider——`providerOrder[0]` 就是路由入口（见上文「选模型规则」）。
+2. **必须键**：`modelConfigRules.manualProviderModelRules` 必须存在（空数组即可），缺失即 `Model creation failed`。
+3. **catalog 键致命**：personal 覆盖只接受 personal 键——`providerConfigRules.providerRules`、`modelConfigRules.providerModelRules` + `manualProviderModelRules`。把 ZCode 内置目录（`zcode-builtin.json`）声明的任何一个 catalog 键——`modelRules`、`modelApiRules`、`providerSiteRules`、`templateModelRules`、`builtinProviderModelRules`、`providerConfigRules.templateRules`——复制进 personal 覆盖，都会直接 `Model creation failed`。
+
+### 所以 lib/schema.js 做的是「校验 + 告警」，不是「镜像填充」
+
+0.3.0 的设计曾打算「镜像 ZCode 内置目录的键集」；**实测证伪**——镜像进来的 catalog 键恰恰是致命键（事实 #3）。因此 `lib/schema.js` 的自适应层只做三件事：
+
+1. **读**：`introspectSchema()` 读取 ZCode 内置 `zcode-builtin.json`，记录它的键集与 schema revision；
+2. **判**：目录里还能看到 personal 键 → `compatible = true`，notes 写「schema 校验通过」；看不到 → `compatible = false`，告警提示对照内置配置（实测后）调整 `lib/schema.js` 的 `PERSONAL_*` 常量；
+3. **生成**：无论判定结果如何，文档永远只含实测验证过的 personal 键——`CATALOG_ONLY_HINTS` 列出的 catalog 键一个都不出现（`test/schema.test.mjs` 有全树回归锁）。
+
+对用户的含义：**ZCode 升级后，插件不会自动适配未知键**（那需要重新实测），但会在生成覆盖配置时自动检测 personal schema 是否仍兼容，并在日志 / `node scripts/setup-check.mjs` 输出告警——把「静默的 Model creation failed」变成一句明确的话。
+
+### 降级路径
+
+内置配置读不到（首次安装、打包异常）时，`buildOverrideConfig` 回退到静态形状并在 notes 注明「schema 自适应不可用，已回退静态形状：<原因>」；完全没传内置配置路径时是纯静态 notes「使用静态 provider 形状（未经 ZCode 内置配置自适应）」。两条降级路径产出的形状与实测验证过的 personal 契约一致。
+
+---
+
+## 四、为什么不碰 ZCode 的全局配置
 
 插件**从不写入**这两个文件：
 
@@ -171,7 +197,7 @@ A/B 验证（`node test/…` 同款脚本，真实 CLI）：
 
 ---
 
-## 四、多轮：`--resume`
+## 五、多轮：`--resume`
 
 ZCode CLI 支持 `--resume <sessionId>` 恢复会话。插件把上轮返回的 `sessionId` 透传即可：
 
@@ -190,7 +216,7 @@ ZCode CLI 支持 `--resume <sessionId>` 恢复会话。插件把上轮返回的 
 
 ---
 
-## 五、缓存
+## 六、缓存
 
 ZCode 支持 prompt caching，插件**不参与**这件事——只是把返回的 `usage.cacheReadTokens` 原样透出，便于观测。
 
@@ -204,7 +230,7 @@ ZCode 支持 prompt caching，插件**不参与**这件事——只是把返回�
 
 ---
 
-## 六、超时、取消、并发
+## 七、超时、取消、并发
 
 ### 超时 / 取消
 
@@ -222,7 +248,7 @@ ZCode 支持 prompt caching，插件**不参与**这件事——只是把返回�
 
 ---
 
-## 七、余量闸门
+## 八、余量闸门
 
 见 [README 的余量闸门一节](../README.md#余量闸门可选)。要点：
 
@@ -235,7 +261,7 @@ ZCode 支持 prompt caching，插件**不参与**这件事——只是把返回�
 
 ---
 
-## 八、路径探测
+## 九、路径探测
 
 见 [troubleshooting.md](troubleshooting.md) 的探测顺序。核心是**零硬编码机器路径**：
 

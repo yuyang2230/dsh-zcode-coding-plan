@@ -292,10 +292,12 @@ Official docs: <https://zcode.z.ai/cn/docs>
 
 ## Known limitations
 
-1. **ZCode upgrades may change the provider schema.** This plugin depends on the
-   `providerConfigRules` / `modelConfigRules` structure. If a major ZCode upgrade yields
-   `Model creation failed`, run `node scripts/setup-check.mjs` first and adjust
-   `lib/override.js` against ZCode's own `zcode-builtin.json`.
+1. **ZCode upgrades may change the provider schema.** The plugin only ever emits the
+   empirically-verified personal keys. After a ZCode upgrade, `lib/schema.js` reads ZCode's
+   builtin provider config, **automatically checks whether the personal schema is still
+   compatible**, and warns in the generation log / `node scripts/setup-check.mjs` — but it
+   does **not** auto-adapt to unknown keys (that requires fresh measurements). On a warning
+   or `Model creation failed`, follow `docs/troubleshooting.md` §2.
 2. **~49K–66K tokens of system prompt per new session** (measured ~67.5K inputTokens for a
    single turn). That's the official client's fixed cost — very poor value for short Q&A.
 3. **Billing is per request, not per prompt length.** A single turn with multiple tool calls

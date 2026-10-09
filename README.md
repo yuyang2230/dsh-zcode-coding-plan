@@ -283,7 +283,7 @@ for r in con.execute('select session_id, provider_id, model_id, status, input_to
 
 ## 已知限制
 
-1. **ZCode 升级可能改 provider schema**。本插件依赖 `providerConfigRules` / `modelConfigRules` 这套结构；ZCode 大版本升级后若报 `Model creation failed`，先跑 `node scripts/setup-check.mjs`，必要时对照 ZCode 内的 `zcode-builtin.json` 调整 `lib/override.js`。
+1. **ZCode 升级可能改 provider schema**。本插件只生成实测验证过的 personal 键；ZCode 升级后 `lib/schema.js` 会读取其内置 provider 配置，**自动检测 personal schema 是否仍兼容**，并在生成日志 / `node scripts/setup-check.mjs` 输出告警——但**不会自动适配未知键**（那需要重新实测）。看到告警或 `Model creation failed` 时，按 `docs/troubleshooting.md` 第 2 节处理。
 2. **每次新会话约 49K–66K tokens 系统提示**（实测单轮 inputTokens 约 67.5K）。这是官方客户端的固定成本，短问答很不划算。
 3. **计费按请求次数**，不是按你的提示长度。单轮多步工具调用可能产生多条 model 记录。
 4. **macOS / Linux 路径探测为尽力而为，未在本机验证**。本仓库的实测验证全部在 **Windows + ZCode 3.14.5** 上完成。其他平台可能需要显式配置 `zcodeExe`/`zcodeCjs`。
