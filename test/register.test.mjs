@@ -4,9 +4,9 @@
 //
 //   node test/register.test.mjs
 import { EventEmitter } from 'node:events'
-import { existsSync, mkdtempSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import * as mod from '../lib/index.js'
 import { findZCodeRoot, resolveZCodePaths, defaultOverridePath, credentialsPath } from '../lib/paths.js'
 import { readCredentialRef, buildOverrideConfig, loadCodingPlanKey, overrideLooksValid } from '../lib/override.js'
@@ -49,11 +49,37 @@ function fakeZcodeChild(payload, { exitCode = 0 } = {}) {
 
 let spawnCount = 0
 let lastSpawn = null
+
+/**
+ * Build a throwaway fake "ZCode install" so the plugin's pre-spawn existence
+ * checks pass on machines (and CI runners) where ZCode is not installed.
+ * This is what keeps the suite hermetic: tests must never depend on whether
+ * the host happens to have ZCode, and must never spawn a real process.
+ */
+const FAKE_ROOT = mkdtempSync(join(tmpdir(), 'dsh-zcode-fakeroot-'))
+const FAKE_EXE = join(FAKE_ROOT, 'ZCode.exe')
+const FAKE_CJS = join(FAKE_ROOT, 'resources', 'glm', 'zcode.cjs')
+const FAKE_BUILTIN = join(FAKE_ROOT, 'resources', 'config', 'provider', 'zcode-builtin.json')
+const FAKE_OVERRIDE = join(FAKE_ROOT, 'zcode-provider-override.json')
+mkdirSync(dirname(FAKE_CJS), { recursive: true })
+mkdirSync(dirname(FAKE_BUILTIN), { recursive: true })
+writeFileSync(FAKE_EXE, 'fake', 'utf8')
+writeFileSync(FAKE_CJS, '// fake', 'utf8')
+writeFileSync(FAKE_BUILTIN, '{}', 'utf8')
+writeFileSync(FAKE_OVERRIDE, '{}', 'utf8')
+
 /** Build zcode_call over a mock spawn so tests never bill a real call. */
 function mockCallTool(config = {}) {
   spawnCount = 0
   lastSpawn = null
-  const { cfg } = mod.resolveConfig(config)
+  const { cfg } = mod.resolveConfig({
+    zcodeExe: FAKE_EXE,
+    zcodeCjs: FAKE_CJS,
+    builtinProviderConfig: FAKE_BUILTIN,
+    providerOverride: FAKE_OVERRIDE,
+    quotaScript: '',
+    ...config,
+  })
   return mod.zcodeCallTool(cfg, {
     spawn: (cmd, args, opts) => {
       spawnCount++
